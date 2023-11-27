@@ -66,14 +66,32 @@ def retrieve_session():
     conn.commit()
     return output
 
-# @app.route('/retrieve_ssn', methods=['POST', 'GET'])
-# def retrieve_ssn():
-#     sql_query = '''
-#     from 
-# '''
-#     cur.execute(sql_query)
-#     conn.commit()
-#     cur.close()
+@app.route('/retrieve_magazine_expensivest', methods=['POST', 'GET'])
+def retrieve_magazine_highest_price():
+    authorid = request.args.get('authorid')
+    sql_query = f'''
+    SELECT
+        item.issn_isbn
+    FROM
+        item
+    INNER JOIN write ON item.issn_isbn = write.issn_isbn
+    INNER JOIN author ON write.authorid = author.authorid
+    WHERE
+        item.itemtype LIKE '%Magazine%' AND author.authorid = {authorid}
+    AND item.price = (
+        SELECT
+            MAX(price)
+        FROM
+            item
+        WHERE
+            itemtype LIKE '%Magazine%'
+    );
+'''
+    cur.execute(sql_query)
+    conn.commit()
+    output = cur.fetchall()
+    #cur.close()
+    return output
 
 @app.route('/retrieve_total_cost', methods=['POST', 'GET'])
 def retrieve_total_cost():
@@ -99,13 +117,18 @@ def retrieve_client_name():
     '''
     year = request.args.get('year')
     sql_query = f'''
-    SELECT person.fname, person.lname
-    FROM session
+    SELECT
+        session.clientid, fname, lname
+    FROM
+        session
     INNER JOIN member ON member.memberid = session.clientid
     INNER JOIN person ON person.ssn = member.ssn
-    WHERE session.year = {year}
-    GROUP BY session.clientid
-    HAVING COUNT(*) > 10
+    WHERE
+        session.year = {year}
+    GROUP BY
+        session.clientid, fname, lname
+    HAVING
+        COUNT(session.clientid) >= 10
 '''
     cur.execute(sql_query)
     conn.commit()
