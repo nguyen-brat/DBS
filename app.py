@@ -15,13 +15,13 @@ cur = conn.cursor()
 def default():
     return "Hello world"
 
-@app.route('/borrow_book', methods=['POST', 'GET'])
-def borrow_book():
-    pass
+# @app.route('/borrow_book', methods=['POST', 'GET'])
+# def borrow_book():
+#     pass
 
-@app.route('/pay_book', method=['POST', 'GET'])
-def pay_book():
-    pass
+# @app.route('/pay_book', method=['POST', 'GET'])
+# def pay_book():
+#     pass
 
 @app.route('/retrieve_title', methods=['POST', 'GET'])
 def retrieve_title():
@@ -164,6 +164,11 @@ def remove_client():
     #cur.close()
 
     return f"success full remove client has ssn {ssn} out of db"
+
+# @app.route('/borrow_book', methods=['POST', 'GET'])
+# def borrow_book():
+#     borrow_date = request.args.get('borrow_date')
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port='6868', debug=True)
