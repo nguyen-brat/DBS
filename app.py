@@ -1,7 +1,11 @@
 from flask import Flask, request
 import psycopg2
-
+from flask_cors import CORS 
+from flask import jsonify
 app = Flask(__name__)
+
+
+CORS(app)
 conn = psycopg2.connect(
     database="postgres",
     user = "postgres", 
@@ -10,6 +14,27 @@ conn = psycopg2.connect(
     port = 5432
 )
 cur = conn.cursor()
+@app.route('/retrieve_member_table', methods=['GET'])
+def retrieve_member_table():
+    cur.execute("SELECT * FROM member")
+    members = cur.fetchall()
+    result = [{'memberid': member[0], 'ssn': member[1], 'providerid': member[2]} for member in members]
+    return jsonify({'result': result})
+
+@app.route('/retrieve_item_table', methods=['GET'])
+def retrieve_item_table():
+    cur.execute("SELECT * FROM item")
+    members = cur.fetchall()
+    
+    result = [{'issn_isbn': member[0], 'version': member[1], 'title': member[2]} for member in members]
+    return jsonify({'result': result})
+
+@app.route('/retrieve_person_table', methods=['GET'])
+def retrieve_person_table():
+    cur.execute("SELECT * FROM person")
+    members = cur.fetchall()
+    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    return jsonify({'result': result})
 
 @app.route('/', methods=['POST', 'GET'])
 def default():
