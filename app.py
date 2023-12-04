@@ -9,7 +9,7 @@ conn = psycopg2.connect(
     password = "123456789",
     port = 5432
 )
-# cur = conn.cursor()
+cur = conn.cursor()
 
 @app.route('/', methods=['POST', 'GET'])
 def default():
@@ -29,7 +29,7 @@ def retrieve_title():
     This function retrieve the titles of all materials that was provided by a
     specific organization name and published in a specific year
     '''
-    cur = conn.cursor()
+    #cur = conn.cursor()
     publication_year = request.args.get('publication_year')
     organization = request.args.get('organization')
     sql_query = f'''
@@ -41,8 +41,9 @@ def retrieve_title():
 '''
     cur.execute(sql_query)
     output = cur.fetchall()
+    output = {'result':output}
     conn.commit()
-    cur.close()
+    #cur.close()
     return output
 
 @app.route('/retrieve_session', methods=['POST', 'GET'])
@@ -51,7 +52,7 @@ def retrieve_session():
     find session_id of a session has data < given date
     and chossen payment method
     '''
-    cur = conn.cursor()
+    #cur = conn.cursor()
     day = request.args.get('day')
     month = request.args.get('month')
     year = request.args.get('year')
@@ -65,13 +66,14 @@ def retrieve_session():
 '''
     cur.execute(sql_query)
     output = cur.fetchall()
+    output = {'result':output}
     conn.commit()
-    cur.close()
+    #cur.close()
     return output
 
 @app.route('/retrieve_magazine_expensivest', methods=['POST', 'GET'])
 def retrieve_magazine_highest_price():
-    cur = conn.cursor()
+    #cur = conn.cursor()
     authorid = request.args.get('authorid')
     sql_query = f'''
     SELECT
@@ -94,12 +96,13 @@ def retrieve_magazine_highest_price():
     cur.execute(sql_query)
     conn.commit()
     output = cur.fetchall()
-    cur.close()
+    output = {'result':output}
+    #cur.close()
     return output
 
 @app.route('/retrieve_total_cost', methods=['POST', 'GET'])
 def retrieve_total_cost():
-    cur = conn.cursor()
+    #cur = conn.cursor()
     clientid = request.args.get('clientid')
     month = request.args.get('month')
     sql_query = f'''
@@ -111,7 +114,8 @@ def retrieve_total_cost():
     cur.execute(sql_query)
     conn.commit()
     output = cur.fetchall()
-    cur.close()
+    output = {'result':output}
+    #cur.close()
     return output
 
 @app.route('/retrieve_client_name', methods=['POST', 'GET'])
@@ -120,7 +124,7 @@ def retrieve_client_name():
     Retrieve name of all client that make more than
     10 session in a specific year
     '''
-    cur = conn.cursor()
+    #cur = conn.cursor()
     year = request.args.get('year')
     sql_query = f'''
     SELECT
@@ -139,12 +143,13 @@ def retrieve_client_name():
     cur.execute(sql_query)
     conn.commit()
     output = cur.fetchall()
-    cur.close()
+    output = {'result':output}
+    #cur.close()
     return output
 
 @app.route('/add_client', methods=['POST', 'GET'])
 def add_client():
-    cur = conn.cursor()
+    #cur = conn.cursor()
     ssn = request.args.get('ssn')
     fname = request.args.get('fname')
     mname = request.args.get('mname')
@@ -157,19 +162,19 @@ def add_client():
     '''
     cur.execute(sql_query)
     conn.commit()
-    cur.close()
+    #cur.close()
     return f"sucess full add client to db"
 
 @app.route('/remove_client', methods=['POST', 'GET'])
 def remove_client():
-    cur = conn.cursor()
+    #cur = conn.cursor()
     ssn = request.args.get('ssn')
     sql_query = f'''DELETE FROM person
     WHERE ssn LIKE '%{ssn}%';
     '''
     cur.execute(sql_query)
     conn.commit()
-    cur.close()
+    #cur.close()
 
     return f"success full remove client has ssn {ssn} out of db"
 
