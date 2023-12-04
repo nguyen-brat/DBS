@@ -48,21 +48,21 @@ def retrieve_person_table():
 def retrieve_data_warehouse_table():
     cur.execute("SELECT * FROM data_warehouse")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'public_key': member[0], 'managerid': member[1]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_digital_copy_table', methods=['GET'])
 def retrieve_digital_copy_table():
     cur.execute("SELECT * FROM digital_copy")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'issn_isbn': member[0], 'filesize': member[1]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_dissertation_table', methods=['GET'])
 def retrieve_dissertation_table():
     cur.execute("SELECT * FROM dissertation")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'issn_isbn': member[0], 'id': member[1], 'advisor': member[2],'institution': member[3]} for member in members]
     return jsonify({'result': result})
 
 
@@ -70,77 +70,70 @@ def retrieve_dissertation_table():
 def retrieve_file_info_table():
     cur.execute("SELECT * FROM file_info")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'issn_isbn': member[0], 'afile_format': member[1], 'afile_size': member[2]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_client_table', methods=['GET'])
 def retrieve_client_table():
     cur.execute("SELECT * FROM client")
     members = cur.fetchall()
-    result = [{'memberid': member[0], 'registerdate': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'memberid': member[0], 'registerdate': member[1], 'creditscore': member[2]} for member in members]
     return jsonify({'result': result})
 
-@app.route('/retrieve_file_transaction_table', methods=['GET'])
-def retrieve_file_transaction_table():
-    cur.execute("SELECT * FROM file_transaction")
+@app.route('/retrieve_fine_transaction_table', methods=['GET'])
+def retrieve_fine_transaction_table():
+    cur.execute("SELECT * FROM fine_transaction")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'bookid': member[0], 'payment_method': member[1], 'fine_type': member[2],'credit_score_update': member[3],'clientid': member[4],'managerid': member[5]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_magazine_table', methods=['GET'])
 def retrieve_magazine_table():
     cur.execute("SELECT * FROM magazine")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'issn_isbn': member[0], 'issuenumber': member[1]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_manager_table', methods=['GET'])
 def retrieve_manager_table():
     cur.execute("SELECT * FROM manager")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'memberid': member[0], 'startdate': member[1]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_organization_table', methods=['GET'])
 def retrieve_organization_table():
     cur.execute("SELECT * FROM organization")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
-    return jsonify({'result': result})
-
-@app.route('/retrieve_person_table', methods=['GET'])
-def retrieve_person_table():
-    cur.execute("SELECT * FROM person")
-    members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'name': member[0], 'address': member[1], 'website': member[2],'providerid': member[3]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_physical_copy_table', methods=['GET'])
 def retrieve_physical_copy_table():
     cur.execute("SELECT * FROM physical_copy")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'issn_isbn': member[0], 'publisher': member[1], 'num_pages': member[2],'borrow_date': member[3],'return_date': member[4],'sid': member[5]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_provider_table', methods=['GET'])
 def retrieve_provider_table():
     cur.execute("SELECT * FROM provider")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'providerid': member[0]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_scientific_paper_table', methods=['GET'])
 def retrieve_scientific_paper_table():
     cur.execute("SELECT * FROM scientific_paper")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'issn_isbn': member[0], 'id': member[1], 'journal_conference': member[2]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_session_table', methods=['GET'])
 def retrieve_session_table():
     cur.execute("SELECT * FROM session")
     members = cur.fetchall()
-    result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
+    result = [{'sessionid': member[0], 'payment_method': member[1], 'cost': member[2],'day': member[3],'month': member[4],'year': member[5],'clientid': member[6],'managerid': member[7],'wkey': member[8]} for member in members]
     return jsonify({'result': result})
 
 
