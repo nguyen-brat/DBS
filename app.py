@@ -81,17 +81,21 @@ def retrieve_magazine_highest_price():
     FROM
         item
     INNER JOIN write ON item.issn_isbn = write.issn_isbn
-    INNER JOIN author ON write.authorid = author.authorid
     WHERE
-        item.itemtype LIKE '%Magazine%' AND author.authorid = {authorid}
-    AND item.price = (
+        item.price = (
         SELECT
             MAX(price)
         FROM
             item
+        INNER JOIN write ON item.issn_isbn = write.issn_isbn
         WHERE
             itemtype LIKE '%Magazine%'
-    );
+        AND write.authorid = {authorid}
+    )
+    AND
+        write.authorid = {authorid}
+    AND
+        item.itemtype LIKE '%Magazine%';
 '''
     cur.execute(sql_query)
     conn.commit()
