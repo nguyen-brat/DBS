@@ -1,11 +1,16 @@
-from flask import Flask, request
+
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import psycopg2
-from flask_cors import CORS 
-from flask import jsonify
+
 app = Flask(__name__)
-
-
 CORS(app)
+
+# PostgreSQL database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456789@database-1.cxrip2pysplk.ap-southeast-2.rds.amazonaws.com:5432/postgres'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 conn = psycopg2.connect(
     database="postgres",
     user = "postgres", 
@@ -14,11 +19,57 @@ conn = psycopg2.connect(
     port = 5432
 )
 cur = conn.cursor()
+
+# Define the Member model
+class Member(db.Model):
+    memberid = db.Column(db.Integer, primary_key=True)
+    ssn = db.Column(db.String)
+    providerid = db.Column(db.Integer)
+
+# Endpoint to handle adding member data
+@app.route('/addMember', methods=['POST'])
+def add_member():
+    try:
+        new_member = Member(**request.json)
+        db.session.add(new_member)
+        db.session.commit()
+        return jsonify(new_member.memberid), 201
+    except Exception as e:
+        print('Error adding member data:', e)
+        db.session.rollback()
+        return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        db.session.close()
+
+class Person(db.Model):
+    ssn = db.Column(db.String, primary_key=True)
+    fname = db.Column(db.String)
+    lname = db.Column(db.String)
+    email = db.Column(db.String)
+    phone_number = db.Column(db.String)
+    home_address = db.Column(db.String)
+
+# Endpoint to handle adding person data
+@app.route('/addPerson', methods=['POST'])
+def add_person():
+    try:
+        new_person = Person(**request.json)
+        db.session.add(new_person)
+        db.session.commit()
+        return jsonify({'ssn': new_person.ssn}), 201
+    except Exception as e:
+        print('Error adding person data:', e)
+        db.session.rollback()
+        return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        db.session.close()
+
+
 @app.route('/retrieve_member_table', methods=['GET'])
 def retrieve_member_table():
     cur.execute("SELECT * FROM member")
     members = cur.fetchall()
-    result = [{'memberid': member[0], 'ssn': member[1], 'providerid': member[2]} for member in members]
+    result = [{'ssn': member[0], 'memberid': member[1], 'providerid': member[2]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_item_table', methods=['GET'])
@@ -26,7 +77,7 @@ def retrieve_item_table():
     cur.execute("SELECT * FROM item")
     members = cur.fetchall()
     
-    result = [{'issn_isbn': member[0], 'version': member[1], 'title': member[2]} for member in members]
+    result = [{'issn_isbn': member[0], 'version': member[1], 'title': member[2],'price': member[3], 'publication_date': member[4], 'providerid': member[5], 'itemtype': member[6],} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_author_table', methods=['GET'])
@@ -317,6 +368,33 @@ def remove_client():
 # @app.route('/borrow_book', methods=['POST', 'GET'])
 # def borrow_book():
 #     borrow_date = request.args.get('borrow_date')
+
+
+@app.route('/api/insertData', methods=['POST'])
+def insert_data():
+    try:
+        data = request.json
+        table = data.get('table')
+        column_data = data.get('columnData')
+
+        # Connect to the PostgreSQL database
+        cursor = conn.cursor()
+
+        # Build the INSERT query dynamically based on user input
+        insert_query = f"INSERT INTO {table} ({', '.join(column_data.keys())}) VALUES ({', '.join(['%s'] * len(column_data))}) RETURNING *"
+        values = tuple(column_data.values())
+
+        cursor.execute(insert_query, values)
+        conn.commit()
+
+        result = cursor.fetchone()
+        conn.close()
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        print('Error inserting data:', e)
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 
 if __name__ == "__main__":
