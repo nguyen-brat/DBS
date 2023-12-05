@@ -36,6 +36,15 @@ def retrieve_author_table():
     result = [{'authorid': member[0], 'ssn': member[1]} for member in members]
     return jsonify({'result': result})
 
+@app.route('/retrieve_write_table', methods=['GET'])
+def retrieve_write_table():
+    cur.execute("SELECT * FROM write")
+    members = cur.fetchall()
+    result = [{'issn_isbn': member[0], 'authorid': member[1]} for member in members]
+    return jsonify({'result': result})
+
+
+
 @app.route('/retrieve_person_table', methods=['GET'])
 def retrieve_person_table():
     cur.execute("SELECT * FROM person")
