@@ -166,11 +166,11 @@ def retrieve_title():
     AND organization.name LIKE '%{organization}%'
 '''
     cur.execute(sql_query)
-    output = cur.fetchall()
-    output = {'result':output}
+    outputs = cur.fetchall()
+    outputs = [{'title':output} for output in outputs]
     conn.commit()
     #cur.close()
-    return output
+    return jsonify({'result':outputs})
 
 @app.route('/retrieve_session', methods=['POST', 'GET'])
 def retrieve_session():
@@ -191,11 +191,11 @@ def retrieve_session():
     AND year <= {year}
 '''
     cur.execute(sql_query)
-    output = cur.fetchall()
-    output = {'result':output}
+    outputs = cur.fetchall()
+    outputs = [{'sessionid':output} for output in outputs]
     conn.commit()
     #cur.close()
-    return output
+    return jsonify({'result':outputs})
 
 @app.route('/retrieve_magazine_expensivest', methods=['POST', 'GET'])
 def retrieve_magazine_highest_price():
@@ -221,10 +221,10 @@ def retrieve_magazine_highest_price():
 '''
     cur.execute(sql_query)
     conn.commit()
-    output = cur.fetchall()
-    output = {'result':output}
+    outputs = cur.fetchall()
+    outputs = [{'issn_isbn':output} for output in outputs]
     #cur.close()
-    return output
+    return jsonify({'result':outputs})
 
 @app.route('/retrieve_total_cost', methods=['POST', 'GET'])
 def retrieve_total_cost():
@@ -236,13 +236,14 @@ def retrieve_total_cost():
     FROM session
     WHERE session.clientid LIKE '%{clientid}%'
     AND session.month = {month}
+    AND session.year = 2022
 '''
     cur.execute(sql_query)
     conn.commit()
     output = cur.fetchall()
-    output = {'result':output}
+    output = [{'result':output}]
     #cur.close()
-    return output
+    return jsonify({'result':output})
 
 @app.route('/retrieve_client_name', methods=['POST', 'GET'])
 def retrieve_client_name():
@@ -268,10 +269,10 @@ def retrieve_client_name():
 '''
     cur.execute(sql_query)
     conn.commit()
-    output = cur.fetchall()
-    output = {'result':output}
+    outputs = cur.fetchall()
+    outputs = [{'cliendid':output[0], 'fname':output[1], 'lname':output[2]} for output in outputs]
     #cur.close()
-    return output
+    return jsonify({'result':outputs})
 
 @app.route('/add_client', methods=['POST', 'GET'])
 def add_client():
