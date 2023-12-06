@@ -6,7 +6,7 @@ import psycopg2
 
 app = Flask(__name__)
 CORS(app)
-
+CORS(app, resources={r"/retrieve_person_table": {"origins": "http://localhost:3000"}})
 # PostgreSQL database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456789@database-1.cxrip2pysplk.ap-southeast-2.rds.amazonaws.com:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -20,26 +20,10 @@ conn = psycopg2.connect(
 )
 cur = conn.cursor()
 
-# Define the Member model
-class Member(db.Model):
-    memberid = db.Column(db.Integer, primary_key=True)
-    ssn = db.Column(db.String)
-    providerid = db.Column(db.Integer)
+#For insert, delete and update
 
-# Endpoint to handle adding member data
-@app.route('/addMember', methods=['POST'])
-def add_member():
-    try:
-        new_member = Member(**request.json)
-        db.session.add(new_member)
-        db.session.commit()
-        return jsonify(new_member.memberid), 201
-    except Exception as e:
-        print('Error adding member data:', e)
-        db.session.rollback()
-        return jsonify({'error': 'Internal Server Error'}), 500
-    finally:
-        db.session.close()
+
+#Person
 
 class Person(db.Model):
     ssn = db.Column(db.String, primary_key=True)
@@ -64,6 +48,73 @@ def add_person():
     finally:
         db.session.close()
 
+        
+@app.route('/deletePerson/<ssn>', methods=['DELETE'])
+def delete_person(ssn):
+    try:
+        person_to_delete = Person.query.get(ssn)
+
+        if person_to_delete:
+            db.session.delete(person_to_delete)
+            db.session.commit()
+            return jsonify({'message': 'Person deleted successfully'}), 200
+        else:
+            return jsonify({'error': 'Person not found'}), 404
+
+    except Exception as e:
+        print('Error deleting person data:', e)
+        db.session.rollback()
+        return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        db.session.close()
+
+
+
+#Item
+
+class Item(db.Model):
+    issn_isbn = db.Column(db.String, primary_key=True)
+    version = db.Column(db.String)
+    title = db.Column(db.String)
+    price = db.Column(db.Numeric)  
+    publication_date = db.Column(db.Date)  
+    providerid = db.Column(db.String)
+    itemtype = db.Column(db.String)
+
+# Endpoint to handle adding person data
+@app.route('/addItem', methods=['POST'])
+def add_item():
+    try:
+        new_item = Item(**request.json)
+        db.session.add(new_item)
+        db.session.commit()
+        return jsonify({'issn_isbn': new_item.issn_isbn}), 201
+    except Exception as e:
+        print('Error adding item data:', e)
+        db.session.rollback()
+        return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        db.session.close()
+
+@app.route('/deleteItem/<issn_isbn>', methods=['DELETE'])
+def delete_item(issn_isbn):
+    try:
+        item_to_delete = Item.query.get(issn_isbn)
+
+        if item_to_delete:
+            db.session.delete(item_to_delete)
+            db.session.commit()
+            return jsonify({'message': 'item deleted successfully'}), 200
+        else:
+            return jsonify({'error': 'item not found'}), 404
+
+    except Exception as e:
+        print('Error deleting item data:', e)
+        db.session.rollback()
+        return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        db.session.close()
+#For display all tables
 
 @app.route('/retrieve_member_table', methods=['GET'])
 def retrieve_member_table():
@@ -122,7 +173,7 @@ def retrieve_digital_copy_table():
 def retrieve_dissertation_table():
     cur.execute("SELECT * FROM dissertation")
     members = cur.fetchall()
-    result = [{'issn_isbn': member[0], 'id': member[1], 'advisor': member[2],'institution': member[3]} for member in members]
+    result = [{'issn_isbn': member[0], 'advisor': member[1],'institution': member[2]} for member in members]
     return jsonify({'result': result})
 
 
@@ -144,7 +195,7 @@ def retrieve_client_table():
 def retrieve_fine_transaction_table():
     cur.execute("SELECT * FROM fine_transaction")
     members = cur.fetchall()
-    result = [{'bookid': member[0], 'payment_method': member[1], 'fine_type': member[2],'credit_score_update': member[3],'clientid': member[4],'managerid': member[5]} for member in members]
+    result = [{'payment_method': member[0], 'fine_type': member[1],'credit_score_update': member[2],'clientid': member[3],'managerid': member[4],'sessionid': member[5],"id": member[6]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_magazine_table', methods=['GET'])
@@ -172,7 +223,7 @@ def retrieve_organization_table():
 def retrieve_physical_copy_table():
     cur.execute("SELECT * FROM physical_copy")
     members = cur.fetchall()
-    result = [{'issn_isbn': member[0], 'publisher': member[1], 'num_pages': member[2],'borrow_date': member[3],'return_date': member[4],'sid': member[5]} for member in members]
+    result = [{'issn_isbn': member[0], 'publisher': member[1], 'num_pages': member[2],'count': member[3]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_provider_table', methods=['GET'])
@@ -186,7 +237,7 @@ def retrieve_provider_table():
 def retrieve_scientific_paper_table():
     cur.execute("SELECT * FROM scientific_paper")
     members = cur.fetchall()
-    result = [{'issn_isbn': member[0], 'id': member[1], 'journal_conference': member[2]} for member in members]
+    result = [{'issn_isbn': member[0],  'journal_conference': member[1]} for member in members]
     return jsonify({'result': result})
 
 @app.route('/retrieve_session_table', methods=['GET'])
@@ -208,6 +259,11 @@ def default():
 # @app.route('/pay_book', method=['POST', 'GET'])
 # def pay_book():
 #     pass
+
+
+
+# 5 queries
+
 
 @app.route('/retrieve_title', methods=['POST', 'GET'])
 def retrieve_title():
@@ -267,17 +323,21 @@ def retrieve_magazine_highest_price():
     FROM
         item
     INNER JOIN write ON item.issn_isbn = write.issn_isbn
-    INNER JOIN author ON write.authorid = author.authorid
     WHERE
-        item.itemtype LIKE '%Magazine%' AND author.authorid = {authorid}
-    AND item.price = (
+        item.price = (
         SELECT
             MAX(price)
         FROM
             item
+        INNER JOIN write ON item.issn_isbn = write.issn_isbn
         WHERE
             itemtype LIKE '%Magazine%'
-    );
+        AND write.authorid = {authorid}
+    )
+    AND
+        write.authorid = {authorid}
+    AND
+        item.itemtype LIKE '%Magazine%';
 '''
     cur.execute(sql_query)
     conn.commit()
@@ -296,12 +356,12 @@ def retrieve_total_cost():
     FROM session
     WHERE session.clientid LIKE '%{clientid}%'
     AND session.month = {month}
-    AND session.year = 2022
+    AND session.year = 2023
 '''
     cur.execute(sql_query)
     conn.commit()
     output = cur.fetchall()
-    output = [{'result':output}]
+    output = [{'total_cost':output}]
     #cur.close()
     return jsonify({'result':output})
 
@@ -325,12 +385,12 @@ def retrieve_client_name():
     GROUP BY
         session.clientid, fname, lname
     HAVING
-        COUNT(session.clientid) >= 10
+        COUNT(session.clientid) >= 3
 '''
     cur.execute(sql_query)
     conn.commit()
     outputs = cur.fetchall()
-    outputs = [{'cliendid':output[0], 'fname':output[1], 'lname':output[2]} for output in outputs]
+    outputs = [{'clientid':output[0], 'fname':output[1], 'lname':output[2]} for output in outputs]
     #cur.close()
     return jsonify({'result':outputs})
 
@@ -352,50 +412,13 @@ def add_client():
     #cur.close()
     return f"sucess full add client to db"
 
-@app.route('/remove_client', methods=['POST', 'GET'])
-def remove_client():
-    #cur = conn.cursor()
-    ssn = request.args.get('ssn')
-    sql_query = f'''DELETE FROM person
-    WHERE ssn LIKE '%{ssn}%';
-    '''
-    cur.execute(sql_query)
-    conn.commit()
-    #cur.close()
 
-    return f"success full remove client has ssn {ssn} out of db"
+
+
 
 # @app.route('/borrow_book', methods=['POST', 'GET'])
 # def borrow_book():
 #     borrow_date = request.args.get('borrow_date')
-
-
-@app.route('/api/insertData', methods=['POST'])
-def insert_data():
-    try:
-        data = request.json
-        table = data.get('table')
-        column_data = data.get('columnData')
-
-        # Connect to the PostgreSQL database
-        cursor = conn.cursor()
-
-        # Build the INSERT query dynamically based on user input
-        insert_query = f"INSERT INTO {table} ({', '.join(column_data.keys())}) VALUES ({', '.join(['%s'] * len(column_data))}) RETURNING *"
-        values = tuple(column_data.values())
-
-        cursor.execute(insert_query, values)
-        conn.commit()
-
-        result = cursor.fetchone()
-        conn.close()
-
-        return jsonify(result), 200
-
-    except Exception as e:
-        print('Error inserting data:', e)
-        return jsonify({'error': 'Internal Server Error'}), 500
-
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port='6868', debug=True)
