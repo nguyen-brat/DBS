@@ -69,6 +69,32 @@ def delete_person(ssn):
         db.session.close()
 
 
+@app.route('/updatePerson/<string:ssn>', methods=['PUT'])
+def update_person(ssn):
+    try:
+        person_to_update = Person.query.get(ssn)
+
+        if not person_to_update:
+            return jsonify({'error': 'Person not found'}), 404
+
+        # Update person attributes
+        updated_data = request.json
+        for key, value in updated_data.items():
+            setattr(person_to_update, key, value)
+
+        # Commit the changes to the existing transaction
+        db.session.commit()
+
+        return jsonify({'message': 'Person updated successfully'}), 200
+
+    except Exception as e:
+        print('Error updating person data:', e)
+        db.session.rollback()
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+    finally:
+        db.session.close()
+
 
 #Item
 
@@ -153,6 +179,7 @@ def retrieve_person_table():
     members = cur.fetchall()
     result = [{'ssn': member[0], 'fname': member[1], 'lname': member[2],'email': member[3],'phone_number': member[4],'home_address': member[5]} for member in members]
     return jsonify({'result': result})
+
 
 
 @app.route('/retrieve_data_warehouse_table', methods=['GET'])
@@ -295,16 +322,14 @@ def retrieve_session():
     and chossen payment method
     '''
     #cur = conn.cursor()
-    day = request.args.get('day')
-    month = request.args.get('month')
-    year = request.args.get('year')
+    date = request.args.get('date')
     payment_method = request.args.get('payment_method')
     sql_query = f'''
     SELECT sessionid FROM session
+    INNER JOIN member ON session.clientid = member.memberid
+    INNER JOIN client ON member.memberid = client.memberid
     WHERE payment_method LIKE '%{payment_method}%'
-    AND day < {day}
-    AND month <= {month}
-    AND year <= {year}
+    AND client.registerdate < '%{date}%'::date;
 '''
     cur.execute(sql_query)
     outputs = cur.fetchall()
