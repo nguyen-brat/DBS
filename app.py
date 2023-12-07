@@ -140,6 +140,40 @@ def delete_item(issn_isbn):
         return jsonify({'error': 'Internal Server Error'}), 500
     finally:
         db.session.close()
+        
+        
+@app.route('/updateItem/<string:issn_isbn>', methods=['PUT'])
+def update_item(issn_isbn):
+    try:
+        item_to_update = Item.query.get(issn_isbn)
+
+        if not item_to_update:
+            return jsonify({'error': 'item not found'}), 404
+
+        # Update person attributes
+        updated_data = request.json
+        for key, value in updated_data.items():
+            setattr(item_to_update, key, value)
+
+        # Commit the changes to the existing transaction
+        db.session.commit()
+
+        return jsonify({'message': 'item updated successfully'}), 200
+
+    except Exception as e:
+        print('Error updating item data:', e)
+        db.session.rollback()
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+    finally:
+        db.session.close()        
+        
+        
+        
+        
+        
+        
+
 #For display all tables
 
 @app.route('/retrieve_member_table', methods=['GET'])
@@ -419,23 +453,36 @@ def retrieve_client_name():
     #cur.close()
     return jsonify({'result':outputs})
 
-@app.route('/add_client', methods=['POST', 'GET'])
-def add_client():
-    #cur = conn.cursor()
-    ssn = request.args.get('ssn')
-    fname = request.args.get('fname')
-    mname = request.args.get('mname')
-    lname = request.args.get('lname')
-    email = request.args.get('email')
-    phone_number = request.args.get('phone_number')
-    home_address = request.args.get('home_address')
-    sql_query = f'''INSERT INTO person (ssn, fname, mname, lname, email, phone_number, home_address) VALUES
-    {ssn, fname, mname, lname, email, phone_number, home_address};
+
+#trigger, 
+
+@app.route('/borrow_book', methods=['POST', 'GET'])
+def borrow_book():
+    attri = request.get_json()
     '''
+    date_session DATE,
+	clientid int,
+    payment_method VARCHAR(255),
+	cost_borrow numeric,
+	managerid VARCHAR(255),
+	wkey VARCHAR(255),
+	
+	publisher VARCHAR(255),
+	num_pages int,
+	issn_isbn VARCHAR(255), 
+	borrow_date DATE,
+	return_date DATE
+    '''
+    sql_query = f'''
+    call borrow_book({attri['date_session']}, {attri['clientid']}, {attri['payment_method']}, {attri['cost_borrow']}, {attri['managerid']}, {attri['wkey']}, {attri['publisher']}, {attri['num_pages']}, {attri['issn_isbn']}, {attri['borrow_date']}, {attri['borrow_date']}) 
+'''
     cur.execute(sql_query)
     conn.commit()
     #cur.close()
-    return f"sucess full add client to db"
+    return 'successfully add borrow book data'
+
+
+
 
 
 
