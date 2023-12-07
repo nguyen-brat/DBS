@@ -53,16 +53,14 @@ def retrieve_session():
     and chossen payment method
     '''
     #cur = conn.cursor()
-    day = request.args.get('day')
-    month = request.args.get('month')
-    year = request.args.get('year')
+    date = request.args.get('date')
     payment_method = request.args.get('payment_method')
     sql_query = f'''
     SELECT sessionid FROM session
+    INNER JOIN member ON session.clientid = member.memberid
+    INNER JOIN client ON member.memberid = client.memberid
     WHERE payment_method LIKE '%{payment_method}%'
-    AND day < {day}
-    AND month <= {month}
-    AND year <= {year}
+    AND client.registerdate < '%{date}%'::date;
 '''
     cur.execute(sql_query)
     outputs = cur.fetchall()
@@ -183,9 +181,30 @@ def remove_client():
 
     return f"success full remove client has ssn {ssn} out of db"
 
-# @app.route('/borrow_book', methods=['POST', 'GET'])
-# def borrow_book():
-#     borrow_date = request.args.get('borrow_date')
+@app.route('/borrow_book', methods=['POST', 'GET'])
+def borrow_book():
+    attri = request.get_json()
+    '''
+    date_session DATE,
+	clientid int,
+    payment_method VARCHAR(255),
+	cost_borrow numeric,
+	managerid VARCHAR(255),
+	wkey VARCHAR(255),
+	
+	publisher VARCHAR(255),
+	num_pages int,
+	issn_isbn VARCHAR(255), 
+	borrow_date DATE,
+	return_date DATE
+    '''
+    sql_query = f'''
+    call borrow_book({attri['date_session']}, {attri['clientid']}, {attri['payment_method']}, {attri['cost_borrow']}, {attri['managerid']}, {attri['wkey']}, {attri['publisher']}, {attri['num_pages']}, {attri['issn_isbn']}, {attri['borrow_date']}, {attri['borrow_date']}) 
+'''
+    cur.execute(sql_query)
+    conn.commit()
+    #cur.close()
+    return 'successfully add borrow book data'
 
 
 if __name__ == "__main__":
