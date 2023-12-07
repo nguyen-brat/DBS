@@ -187,6 +187,19 @@ def remove_client():
 # def borrow_book():
 #     borrow_date = request.args.get('borrow_date')
 
+@app.route('/pay_book', method=['POST', 'GET'])
+def pay_book():
+    issn_isbn = request.args.get('issn_isbn')
+    sql_query = f'''UPDATE physical_copy SET count = count + 1;
+    '''
+    cur.execute(sql_query)
+    conn.commit()
+
+    return_date = request.args.get('return_date')
+    sql_query = f'''UPDATE borrow SET return_date = {return_date};
+    '''
+    cur.execute(sql_query)
+    conn.commit()
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port='6868', debug=True)
