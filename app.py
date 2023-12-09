@@ -185,21 +185,17 @@ def remove_client():
 def borrow_book():
     attri = request.get_json()
     '''
-    date_session DATE,
-	clientid int,
+	physical_bookid VARCHAR(255),
+	borrow_date DATE,
+	return_date DATE,
     payment_method VARCHAR(255),
 	cost_borrow numeric,
+	clientid int,
 	managerid VARCHAR(255),
-	wkey VARCHAR(255),
-	
-	publisher VARCHAR(255),
-	num_pages int,
-	issn_isbn VARCHAR(255), 
-	borrow_date DATE,
-	return_date DATE
+	wkey VARCHAR(255)
     '''
     sql_query = f'''
-    call borrow_book({attri['date_session']}, {attri['clientid']}, {attri['payment_method']}, {attri['cost_borrow']}, {attri['managerid']}, {attri['wkey']}, {attri['publisher']}, {attri['num_pages']}, {attri['issn_isbn']}, {attri['borrow_date']}, {attri['borrow_date']}) 
+    call borrow_book({attri['physical_bookid']}, {attri['borrow_date']}, {attri['return_date']}, {attri['payment_method']}, {attri['cost_borrow']}, {attri['clientid']}, {attri['managerid']}, {attri['wkey']}) 
 '''
     cur.execute(sql_query)
     conn.commit()
