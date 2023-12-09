@@ -193,6 +193,9 @@ def borrow_book():
 	clientid int,
 	managerid VARCHAR(255),
 	wkey VARCHAR(255)
+
+
+    call borrow_book('1', '2023-10-12', '2023-11-12', 'Cash', 10.00, 101, '112', 'key_5');
     '''
     sql_query = f'''
     call borrow_book({attri['physical_bookid']}, {attri['borrow_date']}, {attri['return_date']}, {attri['payment_method']}, {attri['cost_borrow']}, {attri['clientid']}, {attri['managerid']}, {attri['wkey']}) 
