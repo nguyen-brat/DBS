@@ -136,11 +136,11 @@ def retrieve_client_name():
     INNER JOIN member ON member.memberid = session.clientid
     INNER JOIN person ON person.ssn = member.ssn
     WHERE
-        session.year = {year}
+        to_char(session.borrow_date, 'YYYY') LIKE '%{year}%'
     GROUP BY
         session.clientid, fname, lname
     HAVING
-        COUNT(session.clientid) >= 10
+        COUNT(session.clientid) >= 2
 '''
     cur.execute(sql_query)
     conn.commit()
