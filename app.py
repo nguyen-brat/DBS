@@ -111,8 +111,7 @@ def retrieve_total_cost():
     SELECT SUM(cost)
     FROM session
     WHERE session.clientid LIKE '%{clientid}%'
-    AND session.month = {month}
-    AND session.year = 2022
+    AND to_char(session.borrow_date, 'YYYY-MM') LIKE '%2022-{month}%'
 '''
     cur.execute(sql_query)
     conn.commit()
