@@ -116,6 +116,7 @@ def retrieve_total_cost():
     cur.execute(sql_query)
     conn.commit()
     output = cur.fetchall()
+    print(output)
     output = [{'result':output}]
     #cur.close()
     return jsonify({'result':output})
@@ -130,7 +131,7 @@ def retrieve_client_name():
     year = request.args.get('year')
     sql_query = f'''
     SELECT
-        session.clientid, fname, lname
+        fname, lname
     FROM
         session
     INNER JOIN member ON member.memberid = session.clientid
@@ -204,7 +205,7 @@ def borrow_book():
     #cur.close()
     return 'successfully add borrow book data'
 
-@app.route('/pay_book', method=['POST', 'GET'])
+@app.route('/pay_book', methods=['POST', 'GET'])
 def pay_book():
     issn_isbn = request.args.get('issn_isbn')
     sql_query = f'''UPDATE physical_copy SET count = count + 1;
