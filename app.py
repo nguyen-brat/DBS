@@ -197,8 +197,16 @@ def borrow_book():
 
     call borrow_book('1', '2023-10-12', '2023-11-12', 'Cash', 10.00, 101, '112', 'key_5');
     '''
+    physicalbookid = request.args.get('physicalbookid')
+    borrow_date = request.args.get('borrow_date')
+    return_date = request.args.get('return_date')
+    payment_method = request.args.get('payment_method')
+    cost_borrow = request.args.get('cost_borrow')
+    clientid = request.args.get('clientid')
+    managerid = request.args.get('managerid')
+    wkey = request.args.get('wkey')
     sql_query = f'''
-    call borrow_book({attri['physical_bookid']}, {attri['borrow_date']}, {attri['return_date']}, {attri['payment_method']}, {attri['cost_borrow']}, {attri['clientid']}, {attri['managerid']}, {attri['wkey']}) 
+    call borrow_book({physicalbookid}, {borrow_date}, {return_date}, {payment_method}, {cost_borrow}, {clientid}, {managerid}, {wkey}) 
 '''
     cur.execute(sql_query)
     conn.commit()
