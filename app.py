@@ -305,7 +305,7 @@ def retrieve_scientific_paper_table():
 def retrieve_session_table():
     cur.execute("SELECT * FROM session")
     members = cur.fetchall()
-    result = [{'sessionid': member[0], 'payment_method': member[1], 'cost': member[2],'day': member[3],'month': member[4],'year': member[5],'clientid': member[6],'managerid': member[7],'wkey': member[8]} for member in members]
+    result = [{'sessionid': member[0], 'payment_method': member[1], 'cost': member[2],'clientid': member[3],'managerid': member[4],'wkey': member[5],'session_state': member[6],'borrow_date': member[7],'return_date': member[8],'physicalbookid': member[9],'actual_return_date': member[10]} for member in members]
     return jsonify({'result': result})
 
 
@@ -414,21 +414,20 @@ def retrieve_total_cost():
     SELECT SUM(cost)
     FROM session
     WHERE session.clientid LIKE '%{clientid}%'
-    AND session.month = {month}
-    AND session.year = 2023
+    AND to_char(session.borrow_date, 'YYYY-MM') LIKE '%2022-{month}%'
 '''
     cur.execute(sql_query)
     conn.commit()
     output = cur.fetchall()
     output = [{'total_cost':output}]
     #cur.close()
-    return jsonify({'result':output})
+    return jsonify({'total_cost':output})
 
 @app.route('/retrieve_client_name', methods=['POST', 'GET'])
 def retrieve_client_name():
     '''
-    Retrieve name of all client that make more than
-    10 session in a specific year
+    Retrieve name of all client that make from
+    2 session in a specific year
     '''
     #cur = conn.cursor()
     year = request.args.get('year')
@@ -440,41 +439,46 @@ def retrieve_client_name():
     INNER JOIN member ON member.memberid = session.clientid
     INNER JOIN person ON person.ssn = member.ssn
     WHERE
-        session.year = {year}
+        to_char(session.borrow_date, 'YYYY') LIKE '%{year}%'
     GROUP BY
         session.clientid, fname, lname
     HAVING
-        COUNT(session.clientid) >= 3
+        COUNT(session.clientid) >= 2
 '''
     cur.execute(sql_query)
     conn.commit()
     outputs = cur.fetchall()
-    outputs = [{'clientid':output[0], 'fname':output[1], 'lname':output[2]} for output in outputs]
+    outputs = [{'fname':output[1], 'lname':output[2]} for output in outputs]
     #cur.close()
     return jsonify({'result':outputs})
 
-
 #trigger, 
-
 @app.route('/borrow_book', methods=['POST', 'GET'])
 def borrow_book():
     attri = request.get_json()
     '''
-    date_session DATE,
-	clientid int,
+	physical_bookid VARCHAR(255),
+	borrow_date DATE,
+	return_date DATE,
     payment_method VARCHAR(255),
 	cost_borrow numeric,
+	clientid int,
 	managerid VARCHAR(255),
-	wkey VARCHAR(255),
-	
-	publisher VARCHAR(255),
-	num_pages int,
-	issn_isbn VARCHAR(255), 
-	borrow_date DATE,
-	return_date DATE
+	wkey VARCHAR(255)
+
+
+    call borrow_book('1', '2023-10-12', '2023-11-12', 'Cash', 10.00, 101, '112', 'key_5');
     '''
+    physicalbookid = request.args.get('physicalbookid')
+    borrow_date = request.args.get('borrow_date')
+    return_date = request.args.get('return_date')
+    payment_method = request.args.get('payment_method')
+    cost_borrow = request.args.get('cost_borrow')
+    clientid = request.args.get('clientid')
+    managerid = request.args.get('managerid')
+    wkey = request.args.get('wkey')
     sql_query = f'''
-    call borrow_book({attri['date_session']}, {attri['clientid']}, {attri['payment_method']}, {attri['cost_borrow']}, {attri['managerid']}, {attri['wkey']}, {attri['publisher']}, {attri['num_pages']}, {attri['issn_isbn']}, {attri['borrow_date']}, {attri['return_date']}) 
+    call borrow_book({physicalbookid}, {borrow_date}, {return_date}, {payment_method}, {cost_borrow}, {clientid}, {managerid}, {wkey}) 
 '''
     cur.execute(sql_query)
     conn.commit()
