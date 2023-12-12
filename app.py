@@ -33,11 +33,7 @@ def retrieve_title():
     publication_year = request.args.get('publication_year')
     organization = request.args.get('organization')
     sql_query = f'''
-    SELECT title FROM item
-    INNER JOIN organization ON organization.providerid = item.providerid
-    WHERE item.publication_date >= '%{publication_year}-1-1%'::date
-    AND item.publication_date <= '%{publication_year}-12-31%'::date
-    AND organization.name LIKE '%{organization}%'
+    SELECT retrievel_title('{publication_year}', '{organization}');
 '''
     cur.execute(sql_query)
     outputs = cur.fetchall()
@@ -56,11 +52,7 @@ def retrieve_session():
     date = request.args.get('date')
     payment_method = request.args.get('payment_method')
     sql_query = f'''
-    SELECT sessionid FROM session
-    INNER JOIN member ON session.clientid = member.memberid
-    INNER JOIN client ON member.memberid = client.memberid
-    WHERE payment_method LIKE '%{payment_method}%'
-    AND client.registerdate < '%{date}%'::date;
+    select retrieve_session('{payment_method}', '{date}');
 '''
     cur.execute(sql_query)
     outputs = cur.fetchall()
@@ -74,26 +66,7 @@ def retrieve_magazine_highest_price():
     #cur = conn.cursor()
     authorid = request.args.get('authorid')
     sql_query = f'''
-    SELECT
-        item.issn_isbn
-    FROM
-        item
-    INNER JOIN write ON item.issn_isbn = write.issn_isbn
-    WHERE
-        item.price = (
-        SELECT
-            MAX(price)
-        FROM
-            item
-        INNER JOIN write ON item.issn_isbn = write.issn_isbn
-        WHERE
-            itemtype LIKE '%Magazine%'
-        AND write.authorid = {authorid}
-    )
-    AND
-        write.authorid = {authorid}
-    AND
-        item.itemtype LIKE '%Magazine%';
+    select retrieve_magazine_highest_price('{authorid}');
 '''
     cur.execute(sql_query)
     conn.commit()
@@ -108,10 +81,7 @@ def retrieve_total_cost():
     clientid = request.args.get('clientid')
     month = request.args.get('month')
     sql_query = f'''
-    SELECT SUM(cost)
-    FROM session
-    WHERE session.clientid LIKE '%{clientid}%'
-    AND to_char(session.borrow_date, 'YYYY-MM') LIKE '%2022-{month}%'
+    select retrieve_total_cost('{clientid}', '{month}');
 '''
     cur.execute(sql_query)
     conn.commit()
@@ -130,18 +100,7 @@ def retrieve_client_name():
     #cur = conn.cursor()
     year = request.args.get('year')
     sql_query = f'''
-    SELECT
-        fname, lname
-    FROM
-        session
-    INNER JOIN member ON member.memberid = session.clientid
-    INNER JOIN person ON person.ssn = member.ssn
-    WHERE
-        to_char(session.borrow_date, 'YYYY') LIKE '%{year}%'
-    GROUP BY
-        session.clientid, fname, lname
-    HAVING
-        COUNT(session.clientid) >= 2
+    select retrieve_total_cost('{year}');
 '''
     cur.execute(sql_query)
     conn.commit()
@@ -183,7 +142,6 @@ def remove_client():
 
 @app.route('/borrow_book', methods=['POST', 'GET'])
 def borrow_book():
-    attri = request.get_json()
     '''
 	physical_bookid VARCHAR(255),
 	borrow_date DATE,
@@ -205,8 +163,12 @@ def borrow_book():
     clientid = request.args.get('clientid')
     managerid = request.args.get('managerid')
     wkey = request.args.get('wkey')
+#     sql_query = f'''
+#     call borrow_book('{physicalbookid}', '{borrow_date}', '{return_date}', '{payment_method}', {cost_borrow}, '{clientid}', '{managerid}', '{wkey}');
+# '''
+# call borrow_book('7', '2013-10-12', '2013-11-12', 'Cash', 15.00, '101', '112', 'key_5');
     sql_query = f'''
-    call borrow_book({physicalbookid}, {borrow_date}, {return_date}, {payment_method}, {cost_borrow}, {clientid}, {managerid}, {wkey}) 
+    call borrow_book('7', '2013-11-12', '2013-12-12', 'Cash', 15.00, '101', '112', 'key_5');
 '''
     cur.execute(sql_query)
     conn.commit()
