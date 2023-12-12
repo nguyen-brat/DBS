@@ -175,6 +175,25 @@ def update_item(issn_isbn):
         
 
 #For display all tables
+@app.route('/retrieve_total_cost', methods=['POST', 'GET'])
+def retrieve_total_cost():
+    #cur = conn.cursor()
+    clientid = request.args.get('clientid')
+    month = request.args.get('month')
+    sql_query = f'''
+    SELECT SUM(cost)
+    FROM session
+    WHERE session.clientid LIKE '%{clientid}%'
+    AND to_char(session.borrow_date, 'YYYY-MM') LIKE '%2022-{month}%'
+'''
+    cur.execute(sql_query)
+    conn.commit()
+    output = cur.fetchall()
+    print(output)
+    output = [{'total_cost':output}]
+    #cur.close()
+    return jsonify({'result':output})
+
 
 @app.route('/retrieve_member_table', methods=['GET'])
 def retrieve_member_table():
@@ -405,23 +424,7 @@ def retrieve_magazine_highest_price():
     #cur.close()
     return jsonify({'result':outputs})
 
-@app.route('/retrieve_total_cost', methods=['POST', 'GET'])
-def retrieve_total_cost():
-    #cur = conn.cursor()
-    clientid = request.args.get('clientid')
-    month = request.args.get('month')
-    sql_query = f'''
-    SELECT SUM(cost)
-    FROM session
-    WHERE session.clientid LIKE '%{clientid}%'
-    AND to_char(session.borrow_date, 'YYYY-MM') LIKE '%2022-{month}%'
-'''
-    cur.execute(sql_query)
-    conn.commit()
-    output = cur.fetchall()
-    output = [{'total_cost':output}]
-    #cur.close()
-    return jsonify({'total_cost':output})
+
 
 @app.route('/retrieve_client_name', methods=['POST', 'GET'])
 def retrieve_client_name():
