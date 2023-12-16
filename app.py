@@ -175,26 +175,6 @@ def update_item(issn_isbn):
         
 
 #For display all tables
-@app.route('/retrieve_total_cost', methods=['POST', 'GET'])
-def retrieve_total_cost():
-    #cur = conn.cursor()
-    clientid = request.args.get('clientid')
-    month = request.args.get('month')
-    sql_query = f'''
-    SELECT SUM(cost)
-    FROM session
-    WHERE session.clientid LIKE '%{clientid}%'
-    AND to_char(session.borrow_date, 'YYYY-MM') LIKE '%2022-{month}%'
-'''
-    cur.execute(sql_query)
-    conn.commit()
-    output = cur.fetchall()
-    print(output)
-    output = [{'total_cost':output}]
-    #cur.close()
-    return jsonify({'result':output})
-
-
 @app.route('/retrieve_member_table', methods=['GET'])
 def retrieve_member_table():
     cur.execute("SELECT * FROM member")
@@ -324,7 +304,7 @@ def retrieve_scientific_paper_table():
 def retrieve_session_table():
     cur.execute("SELECT * FROM session")
     members = cur.fetchall()
-    result = [{'sessionid': member[0], 'payment_method': member[1], 'cost': member[2],'clientid': member[3],'managerid': member[4],'wkey': member[5],'session_state': member[6],'borrow_date': member[7],'return_date': member[8],'physicalbookid': member[9],'actual_return_date': member[10]} for member in members]
+    result = [{'sessionid': member[0], 'payment_method': member[1], 'cost': member[2],'clientid': member[3],'managerid': member[4],'wkey': member[5],'session_state': member[6],'borrow_date': member[7],'return_date': member[8],'physicalbookid': member[9],'level': member[10]} for member in members]
     return jsonify({'result': result})
 
 
@@ -355,11 +335,7 @@ def retrieve_title():
     publication_year = request.args.get('publication_year')
     organization = request.args.get('organization')
     sql_query = f'''
-    SELECT title FROM item
-    INNER JOIN organization ON organization.providerid = item.providerid
-    WHERE item.publication_date >= '%{publication_year}-1-1%'::date
-    AND item.publication_date <= '%{publication_year}-12-31%'::date
-    AND organization.name LIKE '%{organization}%'
+    SELECT retrievel_title('{publication_year}', '{organization}');
 '''
     cur.execute(sql_query)
     outputs = cur.fetchall()
@@ -378,11 +354,7 @@ def retrieve_session():
     date = request.args.get('date')
     payment_method = request.args.get('payment_method')
     sql_query = f'''
-    SELECT sessionid FROM session
-    INNER JOIN member ON session.clientid = member.memberid
-    INNER JOIN client ON member.memberid = client.memberid
-    WHERE payment_method LIKE '%{payment_method}%'
-    AND client.registerdate < '%{date}%'::date;
+    select retrieve_session('{payment_method}', '{date}');
 '''
     cur.execute(sql_query)
     outputs = cur.fetchall()
@@ -396,26 +368,7 @@ def retrieve_magazine_highest_price():
     #cur = conn.cursor()
     authorid = request.args.get('authorid')
     sql_query = f'''
-    SELECT
-        item.issn_isbn
-    FROM
-        item
-    INNER JOIN write ON item.issn_isbn = write.issn_isbn
-    WHERE
-        item.price = (
-        SELECT
-            MAX(price)
-        FROM
-            item
-        INNER JOIN write ON item.issn_isbn = write.issn_isbn
-        WHERE
-            itemtype LIKE '%Magazine%'
-        AND write.authorid = {authorid}
-    )
-    AND
-        write.authorid = {authorid}
-    AND
-        item.itemtype LIKE '%Magazine%';
+    select retrieve_magazine_highest_price('{authorid}');
 '''
     cur.execute(sql_query)
     conn.commit()
@@ -425,33 +378,21 @@ def retrieve_magazine_highest_price():
     return jsonify({'result':outputs})
 
 
-
 @app.route('/retrieve_client_name', methods=['POST', 'GET'])
 def retrieve_client_name():
     '''
-    Retrieve name of all client that make from
-    2 session in a specific year
+    Retrieve name of all client that make more than
+    10 session in a specific year
     '''
     #cur = conn.cursor()
     year = request.args.get('year')
     sql_query = f'''
-    SELECT
-        session.clientid, fname, lname
-    FROM
-        session
-    INNER JOIN member ON member.memberid = session.clientid
-    INNER JOIN person ON person.ssn = member.ssn
-    WHERE
-        to_char(session.borrow_date, 'YYYY') LIKE '%{year}%'
-    GROUP BY
-        session.clientid, fname, lname
-    HAVING
-        COUNT(session.clientid) >= 2
+    select retrieve_total_cost('{year}');
 '''
     cur.execute(sql_query)
     conn.commit()
     outputs = cur.fetchall()
-    outputs = [{'fname':output[1], 'lname':output[2]} for output in outputs]
+    outputs = [{ 'fname':output[0], 'lname':output[1]} for output in outputs]
     #cur.close()
     return jsonify({'result':outputs})
 
