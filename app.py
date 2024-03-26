@@ -6,7 +6,6 @@ import psycopg2
 
 app = Flask(__name__)
 CORS(app)
-CORS(app, resources={r"/retrieve_person_table": {"origins": "http://localhost:3000"}})
 # PostgreSQL database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456789@database-1.cxrip2pysplk.ap-southeast-2.rds.amazonaws.com:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
